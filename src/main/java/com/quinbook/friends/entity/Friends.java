@@ -11,6 +11,7 @@ public class Friends {
     @MongoId
     private String userName;
     private List<Friend> friendList;
-    private List<String> gotblockedByList;
+    private List<String> gotBlockedByList;
+    private Policy policy;
 
 }

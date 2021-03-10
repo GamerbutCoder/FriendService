@@ -1,6 +1,5 @@
 package com.quinbook.friends.service.impl;
 
-import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.quinbook.friends.client.UserClient;
 import com.quinbook.friends.dto.FriendProfileDTO;
@@ -57,38 +56,51 @@ public class FriendsServiceIMPL implements FriendsService {
             return;
         }
         else{
+
             Optional<Friends> optional = friendsRepository.findById(friendUserName);
             if(optional.isPresent()){
-                Friends f = friendsRepository.checkUserExistsInBlockList(friendUserName,userName);
-                if (f == null) {
+                Friends friends = friendsRepository.checkUserExistsInBlockList(friendUserName,userName);
+                if (friends == null) {
                     Friends obj = optional.get();
-                    List<String> blockedList = obj.getGotblockedByList();
-                    blockedList.add(userName);
-                    obj.setGotblockedByList(blockedList);
+                    obj.getGotBlockedByList().add(userName);
                     friendsRepository.save(obj);
                 }
-                return ;
             }
             else{
                 Friends friends = new Friends();
                 friends.setUserName(friendUserName);
                 List<String> blockList = new ArrayList<>();
                 blockList.add(userName);
-                friends.setGotblockedByList(blockList);
+                friends.setGotBlockedByList(blockList);
                 List<Friend> friendList = new ArrayList<>();
                 friends.setFriendList(friendList);
                 friendsRepository.save(friends);
-                return;
             }
+            removeFriendsFromDB(userName,friendUserName);
+            removeFriendsFromDB(friendUserName,userName);
+            return;
         }
     }
 
-    public void addFriendsInDB(String userName,String friendUserName){
-        Optional<Friends> optional = friendsRepository.findById(userName); //user exists?
+    @Override
+    public void removeFriends(FriendsRequestDTO requestDTO) {
+        String userName = requestDTO.getUserName();
+        String friendUserName = requestDTO.getFriendUserName();
+        if(userName == null || friendUserName == null || userName.length()==0 || friendUserName.length()==0){
+            return;
+        }
+        else{
+            removeFriendsFromDB(userName,friendUserName);
+            removeFriendsFromDB(friendUserName,userName);
+        }
+
+    }
+
+    private void addFriendsInDB(String userName, String friendUserName){
+        Optional<Friends> optional = friendsRepository.findById(userName);
         if(optional.isPresent()){
-            System.out.println(userClient.getFriendProfile(friendUserName)); //friend exists?
             List<Friends> f = mongoOperations.find(new Query(where("friendList.userName").is(friendUserName)),Friends.class);
-            if (f == null && f.size() <= 0) {
+            if (f == null || f.size() <= 0) {
                 Friend friend = new Friend();
                 FriendProfileDTO friendProfileDTO = userClient.getFriendProfile(friendUserName);
                 friend.setProfilePic(friendProfileDTO.getImg());
@@ -111,9 +123,33 @@ public class FriendsServiceIMPL implements FriendsService {
             friendList.add(friend);
             friends.setFriendList(friendList);
             List<String> blockedList = new ArrayList<>();
-            friends.setGotblockedByList(blockedList);
+            friends.setGotBlockedByList(blockedList);
             friendsRepository.save(friends);
         }
         return ;
+    }
+
+    private void removeFriendsFromDB(String userName,String friendUserName){
+        Optional<Friends> optional = friendsRepository.findById(userName);
+        if(optional.isPresent()){
+            try{
+                Friends friends = optional.get();
+                Friend friend = new Friend();
+                friend.setUserName(friendUserName);
+                FriendProfileDTO friendProfileDTO = userClient.getFriendProfile(friendUserName);
+                friend.setFullName(friendProfileDTO.getFullName());
+                friend.setProfilePic(friendProfileDTO.getImg());
+                //friends.getFriendList().remove(friend);
+                Query query = new Query();
+                Criteria criteria = Criteria.where("friendList.userName").is(friendUserName);
+                query.addCriteria(criteria);
+                Update update = new Update().pull("friendList",friend);
+                mongoOperations.updateFirst(query,update,Friends.class);
+
+            }
+            catch (Exception e){
+
+            }
+        }
     }
 }

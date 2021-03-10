@@ -26,4 +26,9 @@ public class FriendController {
         friendsService.blockFriends(requestDTO);
     }
 
+    @PostMapping("/removeFriend")
+    public void removeFriend(@RequestBody FriendsRequestDTO requestDTO){
+        friendsService.removeFriends(requestDTO);
+    }
+
 }
