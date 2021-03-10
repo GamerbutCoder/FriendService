@@ -4,8 +4,10 @@ import com.mongodb.client.MongoClients;
 import com.quinbook.friends.client.UserClient;
 import com.quinbook.friends.dto.FriendProfileDTO;
 import com.quinbook.friends.dto.FriendsRequestDTO;
+import com.quinbook.friends.dto.FriendsSocialDTO;
 import com.quinbook.friends.entity.Friend;
 import com.quinbook.friends.entity.Friends;
+import com.quinbook.friends.entity.Policy;
 import com.quinbook.friends.repository.FriendsRepository;
 import com.quinbook.friends.service.FriendsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +46,8 @@ public class FriendsServiceIMPL implements FriendsService {
         else{
             addFriendsInDB(userName,friendUserName);
             addFriendsInDB(friendUserName,userName);
+
+
         }
     }
 
@@ -74,6 +78,11 @@ public class FriendsServiceIMPL implements FriendsService {
                 friends.setGotBlockedByList(blockList);
                 List<Friend> friendList = new ArrayList<>();
                 friends.setFriendList(friendList);
+                Policy policy = new Policy();
+                policy.setProfilePic("PUBLIC");
+                policy.setFeed("PUBLIC");
+                policy.setFriendList("PUBLIC");
+                friends.setPolicy(policy);
                 friendsRepository.save(friends);
             }
             removeFriendsFromDB(userName,friendUserName);
@@ -124,6 +133,11 @@ public class FriendsServiceIMPL implements FriendsService {
             friends.setFriendList(friendList);
             List<String> blockedList = new ArrayList<>();
             friends.setGotBlockedByList(blockedList);
+            Policy policy = new Policy();
+            policy.setProfilePic("PUBLIC");
+            policy.setFeed("PUBLIC");
+            policy.setFriendList("PUBLIC");
+            friends.setPolicy(policy);
             friendsRepository.save(friends);
         }
         return ;
@@ -151,5 +165,24 @@ public class FriendsServiceIMPL implements FriendsService {
 
             }
         }
+    }
+
+    @Override
+    public FriendsSocialDTO fetchUserSocial(String userName) {
+        Optional<Friends> friends = friendsRepository.findById(userName);
+        if(friends.isPresent()){
+            Friends response  = friends.get();
+            FriendsSocialDTO friendsSocialDTO = new FriendsSocialDTO();
+            friendsSocialDTO.setUserName(response.getUserName());
+            friendsSocialDTO.setFriendList(response.getFriendList());
+            Policy policy = new Policy();
+            policy.setFeed(response.getPolicy().getFeed());
+            policy.setFriendList(response.getPolicy().getFriendList());
+            policy.setProfilePic(response.getPolicy().getProfilePic());
+            friendsSocialDTO.setPolicy(policy);
+            friendsSocialDTO.setGotBlockedByList(response.getGotBlockedByList());
+            return friendsSocialDTO;
+        }
+        return null;
     }
 }

@@ -1,13 +1,11 @@
 package com.quinbook.friends.controller;
 
 import com.quinbook.friends.dto.FriendsRequestDTO;
+import com.quinbook.friends.dto.FriendsSocialDTO;
 import com.quinbook.friends.repository.FriendsRepository;
 import com.quinbook.friends.service.FriendsService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @CrossOrigin
@@ -29,6 +27,11 @@ public class FriendController {
     @PostMapping("/removeFriend")
     public void removeFriend(@RequestBody FriendsRequestDTO requestDTO){
         friendsService.removeFriends(requestDTO);
+    }
+
+    @PostMapping("/fetchUserSocial")
+    public FriendsSocialDTO fetchUserSocial(@RequestParam String userName){
+        return friendsService.fetchUserSocial(userName);
     }
 
 }
