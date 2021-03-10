@@ -34,8 +34,6 @@ public class FriendsServiceIMPL implements FriendsService {
     private FriendsRepository friendsRepository;
 
 
-
-
     @Override
     public void addFriends(FriendsRequestDTO requestDTO) {
 
@@ -49,6 +47,7 @@ public class FriendsServiceIMPL implements FriendsService {
             addFriendsInDB(friendUserName,userName);
         }
     }
+
 
     @Override
     public void blockFriends(FriendsRequestDTO requestDTO) {
@@ -67,18 +66,6 @@ public class FriendsServiceIMPL implements FriendsService {
                     blockedList.add(userName);
                     obj.setGotblockedByList(blockedList);
                     friendsRepository.save(obj);
-
-//                    Friend friend = new Friend();
-//                    FriendProfileDTO friendProfileDTO = userClient.getFriendProfile(userName);
-//                    friend.setProfilePic(friendProfileDTO.getImg());
-//                    friend.setUserName(friendUserName);
-//                    friend.setFullName(friendProfileDTO.getFullName());
-//                    Query query = new Query();
-//                    Criteria criteria = Criteria.where("userName").is(friendUserName);
-//                    query.addCriteria(criteria);
-//                    Update update = new Update();
-//                    update.push("gotBlockedByList", userName); //not working as intended
-//                    mongoOperations.updateFirst(query, update, Friends.class);
                 }
                 return ;
             }
@@ -101,11 +88,7 @@ public class FriendsServiceIMPL implements FriendsService {
         if(optional.isPresent()){
             System.out.println(userClient.getFriendProfile(friendUserName)); //friend exists?
             List<Friends> f = mongoOperations.find(new Query(where("friendList.userName").is(friendUserName)),Friends.class);
-            if(f!=null || f.size()>0){
-                return ;
-            }
-            else{
-
+            if (f == null && f.size() <= 0) {
                 Friend friend = new Friend();
                 FriendProfileDTO friendProfileDTO = userClient.getFriendProfile(friendUserName);
                 friend.setProfilePic(friendProfileDTO.getImg());
@@ -114,13 +97,6 @@ public class FriendsServiceIMPL implements FriendsService {
                 Friends friends = optional.get();
                 friends.getFriendList().add(friend);
                 friendsRepository.save(friends);
-//                    Query query = new Query();
-//                    Criteria criteria = Criteria.where("userName").is(userName);
-//                    query.addCriteria(criteria);
-//                    Update update = new Update();
-//                    update.push("friendList",friend);
-//                    mongoOperations.updateFirst(query,update,Friends.class);
-                return;
             }
         }
         else{
@@ -137,7 +113,7 @@ public class FriendsServiceIMPL implements FriendsService {
             List<String> blockedList = new ArrayList<>();
             friends.setGotblockedByList(blockedList);
             friendsRepository.save(friends);
-            return;
         }
+        return ;
     }
 }
