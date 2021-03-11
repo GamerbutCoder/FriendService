@@ -15,18 +15,18 @@ public class FriendController {
     private FriendsService friendsService;
 
     @PostMapping("/addFriends")
-    public void addFriend( @RequestBody  FriendsRequestDTO requestDTO){
-        friendsService.addFriends(requestDTO);
+    public void addFriend( @RequestBody  FriendsRequestDTO requestDTO,@RequestHeader("sessionId") String sessionId){
+        friendsService.addFriends(requestDTO,sessionId);
     }
 
     @PostMapping("/blockUser")
-    public void blockFriend(@RequestBody FriendsRequestDTO requestDTO){
-        friendsService.blockFriends(requestDTO);
+    public void blockFriend(@RequestBody FriendsRequestDTO requestDTO,@RequestHeader("sessionId") String sessionId){
+        friendsService.blockFriends(requestDTO,sessionId);
     }
 
     @PostMapping("/removeFriend")
-    public void removeFriend(@RequestBody FriendsRequestDTO requestDTO){
-        friendsService.removeFriends(requestDTO);
+    public void removeFriend(@RequestBody FriendsRequestDTO requestDTO,@RequestHeader("sessionId") String sessionId){
+        friendsService.removeFriends(requestDTO,sessionId);
     }
 
     @PostMapping("/fetchUserSocial")

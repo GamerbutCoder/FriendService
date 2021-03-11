@@ -1,14 +1,17 @@
 package com.quinbook.friends.service.impl;
 
 import com.mongodb.client.MongoClients;
+import com.quinbook.friends.client.NotificationClient;
 import com.quinbook.friends.client.UserClient;
 import com.quinbook.friends.dto.FriendProfileDTO;
+import com.quinbook.friends.dto.FriendRequestAcceptanceNotification;
 import com.quinbook.friends.dto.FriendsRequestDTO;
 import com.quinbook.friends.dto.FriendsSocialDTO;
 import com.quinbook.friends.entity.Friend;
 import com.quinbook.friends.entity.Friends;
 import com.quinbook.friends.entity.Policy;
 import com.quinbook.friends.repository.FriendsRepository;
+import com.quinbook.friends.repository.LoginDao;
 import com.quinbook.friends.service.FriendsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoOperations;
@@ -17,6 +20,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,18 +36,30 @@ public class FriendsServiceIMPL implements FriendsService {
     private UserClient userClient;
 
     @Autowired
+    private NotificationClient notificationClient;
+
+    @Autowired
     private FriendsRepository friendsRepository;
+
+    @Autowired
+    private LoginDao loginDao;
 
 
     @Override
-    public void addFriends(FriendsRequestDTO requestDTO) {
-
+    @Transactional
+    public void addFriends(FriendsRequestDTO requestDTO,String sessionId) {
+        sessionvalidate(sessionId);
         String userName = requestDTO.getUserName();
         String friendUserName = requestDTO.getFriendUserName();
-        if(userName == null || friendUserName == null || userName.length()==0 || friendUserName.length()==0){
+        if(userName == null || friendUserName == null || userName.length()==0 || friendUserName.length()==0 || requestDTO.getSelfDetails() ==null){
             return;
         }
         else{
+            FriendRequestAcceptanceNotification obj  = new FriendRequestAcceptanceNotification();
+            obj.setWhose(friendUserName);
+            obj.setAcceptedBy(requestDTO.getSelfDetails());
+            obj.setEventType("FRNDREQACC");
+            notificationClient.sendAcceptanceNotification(obj);
             addFriendsInDB(userName,friendUserName);
             addFriendsInDB(friendUserName,userName);
 
@@ -53,7 +69,7 @@ public class FriendsServiceIMPL implements FriendsService {
 
 
     @Override
-    public void blockFriends(FriendsRequestDTO requestDTO) {
+    public void blockFriends(FriendsRequestDTO requestDTO,String sessionId) {
         String userName = requestDTO.getUserName();
         String friendUserName = requestDTO.getFriendUserName();
         if(userName == null || friendUserName == null || userName.length()==0 || friendUserName.length()==0){
@@ -87,12 +103,13 @@ public class FriendsServiceIMPL implements FriendsService {
             }
             removeFriendsFromDB(userName,friendUserName);
             removeFriendsFromDB(friendUserName,userName);
+
             return;
         }
     }
 
     @Override
-    public void removeFriends(FriendsRequestDTO requestDTO) {
+    public void removeFriends(FriendsRequestDTO requestDTO,String sessionId) {
         String userName = requestDTO.getUserName();
         String friendUserName = requestDTO.getFriendUserName();
         if(userName == null || friendUserName == null || userName.length()==0 || friendUserName.length()==0){
@@ -105,6 +122,7 @@ public class FriendsServiceIMPL implements FriendsService {
 
     }
 
+    @Transactional
     private void addFriendsInDB(String userName, String friendUserName){
         Optional<Friends> optional = friendsRepository.findById(userName);
         if(optional.isPresent()){
@@ -143,6 +161,7 @@ public class FriendsServiceIMPL implements FriendsService {
         return ;
     }
 
+    @Transactional
     private void removeFriendsFromDB(String userName,String friendUserName){
         Optional<Friends> optional = friendsRepository.findById(userName);
         if(optional.isPresent()){
@@ -158,6 +177,7 @@ public class FriendsServiceIMPL implements FriendsService {
                 Criteria criteria = Criteria.where("friendList.userName").is(friendUserName);
                 query.addCriteria(criteria);
                 Update update = new Update().pull("friendList",friend);
+
                 mongoOperations.updateFirst(query,update,Friends.class);
 
             }
@@ -184,5 +204,11 @@ public class FriendsServiceIMPL implements FriendsService {
             return friendsSocialDTO;
         }
         return null;
+    }
+
+    private boolean sessionvalidate(String sessionId){
+        System.out.println(loginDao.findUserById(sessionId));
+        System.out.println(loginDao.findAll());
+        return false;
     }
 }

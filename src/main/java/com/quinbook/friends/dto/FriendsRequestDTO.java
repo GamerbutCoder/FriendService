@@ -1,5 +1,6 @@
 package com.quinbook.friends.dto;
 
+import com.quinbook.friends.entity.Friend;
 import lombok.Data;
 
 import java.util.List;
@@ -8,4 +9,5 @@ import java.util.List;
 public class FriendsRequestDTO {
     private String userName;
     private String friendUserName;
+    private Friend selfDetails;
 }
