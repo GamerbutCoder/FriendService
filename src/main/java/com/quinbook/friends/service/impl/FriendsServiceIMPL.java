@@ -9,20 +9,26 @@ import com.quinbook.friends.dto.FriendsRequestDTO;
 import com.quinbook.friends.dto.FriendsSocialDTO;
 import com.quinbook.friends.entity.Friend;
 import com.quinbook.friends.entity.Friends;
+import com.quinbook.friends.entity.Login;
 import com.quinbook.friends.entity.Policy;
 import com.quinbook.friends.repository.FriendsRepository;
 import com.quinbook.friends.repository.LoginDao;
 import com.quinbook.friends.service.FriendsService;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.RequestEntity;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
@@ -48,7 +54,9 @@ public class FriendsServiceIMPL implements FriendsService {
     @Override
     @Transactional
     public void addFriends(FriendsRequestDTO requestDTO,String sessionId) {
-        sessionvalidate(sessionId);
+        if(sessionvalidate(sessionId) ==null){
+            return;
+        }
         String userName = requestDTO.getUserName();
         String friendUserName = requestDTO.getFriendUserName();
         if(userName == null || friendUserName == null || userName.length()==0 || friendUserName.length()==0 || requestDTO.getSelfDetails() ==null){
@@ -70,6 +78,9 @@ public class FriendsServiceIMPL implements FriendsService {
 
     @Override
     public void blockFriends(FriendsRequestDTO requestDTO,String sessionId) {
+        if(sessionvalidate(sessionId)==null){
+            return;
+        }
         String userName = requestDTO.getUserName();
         String friendUserName = requestDTO.getFriendUserName();
         if(userName == null || friendUserName == null || userName.length()==0 || friendUserName.length()==0){
@@ -110,6 +121,9 @@ public class FriendsServiceIMPL implements FriendsService {
 
     @Override
     public void removeFriends(FriendsRequestDTO requestDTO,String sessionId) {
+        if(sessionvalidate(sessionId)==null){
+            return;
+        }
         String userName = requestDTO.getUserName();
         String friendUserName = requestDTO.getFriendUserName();
         if(userName == null || friendUserName == null || userName.length()==0 || friendUserName.length()==0){
@@ -206,9 +220,45 @@ public class FriendsServiceIMPL implements FriendsService {
         return null;
     }
 
-    private boolean sessionvalidate(String sessionId){
-        System.out.println(loginDao.findUserById(sessionId));
-        System.out.println(loginDao.findAll());
-        return false;
+    private String sessionvalidate(String sessionId){
+
+        List<Login> loginList= loginDao.findAll();
+        System.out.println(loginList);
+        HashMap<String,String> userMap=new HashMap<>();
+        for(Login login:loginList)
+        {
+            String session=login.getSessionId();
+            System.out.println(session);
+            String userName=login.getUserName();
+            System.out.println(userName);
+            userMap.put(session,userName);
+        }
+        if (userMap.containsKey(sessionId)){
+            return userMap.get(sessionId);
+        }
+        else{
+            return null;
+        }
+    }
+
+    @Override
+    public ResponseEntity<List<Friend>> fetchFriendList(String sessionId) {
+        ResponseEntity<List<Friend>> response;
+        String userName = sessionvalidate(sessionId);
+        if( userName == null){
+            response = new ResponseEntity<>(new ArrayList<>(), HttpStatus.BAD_REQUEST);
+            return response;
+        }
+        Optional<Friends> optional = friendsRepository.findById(userName);
+        if(optional.isPresent()){
+            List<Friend> friendList = optional.get().getFriendList();
+            response = new ResponseEntity<>(friendList,HttpStatus.OK);
+            return response;
+        }
+        else{
+            response = new ResponseEntity<>(new ArrayList<>(), HttpStatus.BAD_REQUEST);
+            return response;
+        }
+
     }
 }
