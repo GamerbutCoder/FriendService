@@ -230,7 +230,7 @@ public class FriendsServiceIMPL implements FriendsService {
         return null;
     }
 
-    private String sessionValidate(String sessionId){
+    public String sessionValidate(String sessionId){
 
         Login login= loginDao.findUserById(sessionId);
         if(login != null) return login.getUserName();
