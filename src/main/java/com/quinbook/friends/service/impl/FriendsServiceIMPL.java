@@ -24,15 +24,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
+import static com.quinbook.friends.constants.ConstantStrings.*;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 @Service
 public class FriendsServiceIMPL implements FriendsService {
-    static MongoOperations mongoOperations = new MongoTemplate(MongoClients.create(),"quinbook");
+
+    static MongoOperations mongoOperations = new MongoTemplate(MongoClients.create(),DATABASE_NAME);
 
     @Autowired
     private SessionClient sessionClient;
@@ -69,7 +70,7 @@ public class FriendsServiceIMPL implements FriendsService {
                 FriendRequestAcceptanceNotification obj  = new FriendRequestAcceptanceNotification();
                 obj.setWhose(friendUserName);
                 obj.setAcceptedBy(requestDTO.getSelfDetails());
-                obj.setEventType("FRNDREQACC");
+                obj.setEventType(FRIEND_REQUEST_ACCEPT);
                 notificationClient.sendAcceptanceNotification(obj);
                 return true;
             }
@@ -108,16 +109,16 @@ public class FriendsServiceIMPL implements FriendsService {
                 List<Friend> friendList = new ArrayList<>();
                 friends.setFriendList(friendList);
                 Policy policy = new Policy();
-                policy.setProfilePic("PUBLIC");
-                policy.setFeed("PUBLIC");
-                policy.setFriendList("PUBLIC");
+                policy.setProfilePic(PUBLIC);
+                policy.setFeed(PUBLIC);
+                policy.setFriendList(PUBLIC);
                 friends.setPolicy(policy);
                 friendsRepository.save(friends);
 
             }
             boolean checker = true;
-            checker&=removeFriendsFromDB(userName,friendUserName);
-            checker&=removeFriendsFromDB(friendUserName,userName);
+            checker &= removeFriendsFromDB(userName,friendUserName);
+            checker &= removeFriendsFromDB(friendUserName,userName);
 
             return checker;
         }
@@ -135,8 +136,8 @@ public class FriendsServiceIMPL implements FriendsService {
         }
         else{
             boolean checker = true;
-            checker&=removeFriendsFromDB(userName,friendUserName);
-            checker&=removeFriendsFromDB(friendUserName,userName);
+            checker &= removeFriendsFromDB(userName,friendUserName);
+            checker &= removeFriendsFromDB(friendUserName,userName);
             return checker;
         }
 
@@ -174,9 +175,9 @@ public class FriendsServiceIMPL implements FriendsService {
             List<String> blockedList = new ArrayList<>();
             friends.setGotBlockedByList(blockedList);
             Policy policy = new Policy();
-            policy.setProfilePic("PUBLIC");
-            policy.setFeed("PUBLIC");
-            policy.setFriendList("PUBLIC");
+            policy.setProfilePic(PUBLIC);
+            policy.setFeed(PUBLIC);
+            policy.setFriendList(PUBLIC);
             friends.setPolicy(policy);
             friendsRepository.save(friends);
             return true;
@@ -194,15 +195,10 @@ public class FriendsServiceIMPL implements FriendsService {
                 FriendProfileDTO friendProfileDTO = userClient.getFriendProfile(friendUserName);
                 friend.setFullName(friendProfileDTO.getFullName());
                 friend.setProfilePic(friendProfileDTO.getImg());
-                //friends.getFriendList().remove(friend);
                 Query query = new Query();
                 Criteria criteria = Criteria.where("friendList.userName").is(friendUserName);
                 query.addCriteria(criteria);
                 Update update = new Update().pull("friendList",friend);
-//                List<Friend> l = friends.getFriendList();
-//                l.remove(friend);
-//                friends.setFriendList(l);
-//                friendsRepository.save(friends);
 
                 mongoOperations.updateFirst(query,update,Friends.class);
                 return true;
@@ -246,7 +242,7 @@ public class FriendsServiceIMPL implements FriendsService {
     public ResponseEntity<List<Friend>> fetchFriendList(String sessionId) {
         ResponseEntity<List<Friend>> response;
 
-        //String userName = sessionClient.getUserName(sessionId);
+        //String userName = sessionClient.getUserName(sessionId); //if kafka fails we can query login service directly
         String userName = sessionValidate(sessionId);
         if( userName == null || userName.length() == 0){
             response = new ResponseEntity<>(new ArrayList<>(), HttpStatus.BAD_REQUEST);
@@ -305,7 +301,7 @@ public class FriendsServiceIMPL implements FriendsService {
     @Override
     public boolean checkBlockedStatus(FriendStatusRequestDTO requestDTO, String sessionId) {
         String userName = sessionValidate(sessionId);
-        if(userName == null) return true; //if sessionId is invalid then true will make the friend user looking for blocked-just for reducing unwanted interaction
+        if(userName == null) return true; //if sessionId is invalid then true will make all the people user looking for as blocked -> just for reducing unwanted interaction
         else {
             Friends friends = friendsRepository.checkUserExistsInBlockList(userName, requestDTO.getFriendUserName());
             return (friends != null);
