@@ -10,6 +10,9 @@ public interface FriendsRepository extends MongoRepository<Friends,String> {
 //    public void offFeatures(String feature) {
 //
 //    }
-    @Query(value = "{ 'userName':?0 , 'gotBlockedByList.?1':{$exists:true} }")
-    Friends checkUserExistsInBlockList(String friendName,String userName);
+    @Query(value = "{ 'userName':?0 , 'gotBlockedByList':?1 }")
+    Friends checkUserExistsInBlockList( String friendName,String userName);
+
+    @Query(value = "{ 'userName':?0 , 'friendList.?1':{$exists:true} }")
+    Friends checkUserExistsInFriendList(String  userName ,String friendName);
 }

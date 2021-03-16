@@ -21,6 +21,10 @@ public class LoginDao {
     public Login findUserById(String userName){
         return (Login) template.opsForHash().get(HASH_KEY,userName);
     }
+    public String deleteUser(String sessionId){
+        template.opsForHash().delete(HASH_KEY,sessionId);
+        return "User removed !!";
+    }
 
 
 }

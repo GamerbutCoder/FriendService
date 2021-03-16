@@ -10,7 +10,8 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.Message;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -18,8 +19,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
+@CrossOrigin
 @RestController
 public class SessionController {
+
+    @GetMapping("/{userName}")
+    public String deleteSession(@PathVariable("userName") String userName)   {
+        return loginDao.deleteUser(userName);
+    }
+
     List<String> topicList = new ArrayList<>();
 
     @Autowired
