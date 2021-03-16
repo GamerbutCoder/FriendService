@@ -1,0 +1,12 @@
+ {
+    "userName": "deepak",
+    "friendList": [],
+    "gotBlockedByList": [],
+    "policy": {
+      "profilePic": "PUBLIC",
+      "feed": "PUBLIC",
+      "friendList": "PUBLIC"
+    }
+  }
+
+

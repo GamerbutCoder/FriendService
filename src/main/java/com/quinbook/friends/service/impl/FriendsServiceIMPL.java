@@ -242,8 +242,8 @@ public class FriendsServiceIMPL implements FriendsService {
     public ResponseEntity<List<Friend>> fetchFriendList(String sessionId) {
         ResponseEntity<List<Friend>> response;
 
-        //String userName = sessionClient.getUserName(sessionId); //if kafka fails we can query login service directly
-        String userName = sessionValidate(sessionId);
+        String userName = sessionClient.getUserName(sessionId); //if kafka fails we can query login service directly
+        //String userName = sessionValidate(sessionId);
         if( userName == null || userName.length() == 0){
             response = new ResponseEntity<>(new ArrayList<>(), HttpStatus.BAD_REQUEST);
             return response;
