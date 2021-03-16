@@ -236,23 +236,10 @@ public class FriendsServiceIMPL implements FriendsService {
 
     private String sessionValidate(String sessionId){
 
-        List<Login> loginList= loginDao.findAll();
-        System.out.println(loginList);
-        HashMap<String,String> userMap=new HashMap<>();
-        for(Login login:loginList)
-        {
-            String session=login.getSessionId();
-            System.out.println(session);
-            String userName=login.getUserName();
-            System.out.println(userName);
-            userMap.put(session,userName);
-        }
-        if (userMap.containsKey(sessionId)){
-            return userMap.get(sessionId);
-        }
-        else{
-            return null;
-        }
+        Login login= loginDao.findUserById(sessionId);
+        if(login != null) return login.getUserName();
+        else return null;
+
     }
 
     @Override

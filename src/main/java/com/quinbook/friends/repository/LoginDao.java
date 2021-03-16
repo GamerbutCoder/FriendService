@@ -18,8 +18,8 @@ public class LoginDao {
     public List<Login> findAll(){
         return template.opsForHash().values(HASH_KEY);
     }
-    public Login findUserById(String userName){
-        return (Login) template.opsForHash().get(HASH_KEY,userName);
+    public Login findUserById(String sessionId){
+        return (Login) template.opsForHash().get(HASH_KEY,sessionId);
     }
     public String deleteUser(String sessionId){
         template.opsForHash().delete(HASH_KEY,sessionId);
