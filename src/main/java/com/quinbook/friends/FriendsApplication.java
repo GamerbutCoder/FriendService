@@ -4,7 +4,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
-//import static com.quinbook.friends.controller.SessionController.kafkaMethod;
 
 
 @EnableFeignClients
@@ -15,7 +14,6 @@ public class FriendsApplication {
 
         SpringApplication.run(FriendsApplication.class, args);
 
-        //kafkaMethod();
     }
 
 

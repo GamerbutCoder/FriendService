@@ -86,7 +86,7 @@ public class FriendsServiceIMPL implements FriendsService {
         }
         String userName = requestDTO.getUserName();
         String friendUserName = requestDTO.getFriendUserName();
-        if(userName == null || friendUserName == null || userName.length()==0 || friendUserName.length()==0){
+        if(userName == null || friendUserName == null || userName.length()==0 || friendUserName.length()==0 || requestDTO.getSelfDetails() ==null){
             return false;
         }
         else{
